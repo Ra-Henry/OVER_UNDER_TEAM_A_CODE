@@ -32,6 +32,8 @@ motor intake(PORT13, false);
 digital_out Wings1(Brain.ThreeWirePort.G);
 digital_out Wings2(Brain.ThreeWirePort.H);
 controller control(primary);
+inertial inertials(PORT14, turnType::right);
+
 void move(int pos, int speed, bool stopping) {
   drive.spinFor(pos, rotationUnits::deg, speed, velocityUnits::pct);
 }
@@ -144,6 +146,41 @@ void arcDist(double lmult, double rmult, double dist, int timeout) {
   drivePct(0, 0);
 }
 
+double actual360 = 354.97;
+
+double getRotation() {
+  return inertials.rotation() / actual360 * 360;
+}
+
+void turnPID(double angle, int timeout, bool reset) {
+  double threshold = 5, kp = 1, ki = 0.2, kd = 0.5, speedPct = 100;
+  if (reset) inertials.resetRotation();
+  double integral = 0;
+  double derivative = 0;
+  double prev_error, error;
+  prev_error = error = angle;
+  double curr = 0;
+  double velo;
+  vex::timer t1;
+  while (t1.time(vex::msec) < timeout) {
+    vex::wait(10, vex::msec);
+    curr = getRotation();
+    error = angle - curr;
+    std::cout << "PID Turn error = " << error << "\n\n";
+    derivative = error - prev_error;
+    if (error < 0 != prev_error < 0) {
+      integral = 0;
+    }
+    prev_error = error;
+    if (fabs(error) < threshold) integral += error;
+    velo = error * kp + integral * ki + derivative * kd;
+    if (velo > speedPct) velo = speedPct;
+    if (velo < -speedPct) velo = -speedPct;
+    drivePct(velo, -velo);
+  }
+  drivePct(0, 0);
+}
+
 enum auton_mode {
   FAR_SIDE,
   CLOSE_SIDE,
@@ -211,7 +248,7 @@ void progSkills() {
     wait(250, msec);
   }
   flywheel.spin(forward, 0, volt);
-
+  // turnPID(90, 20000, true);
 }
 
 void autonomous(void) {
