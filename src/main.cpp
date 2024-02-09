@@ -202,16 +202,22 @@ void progSkills() {
   drivePID(-400, 500);
   arcDist(-0.2, 1, 600, 1000);
   drivePID(-500, 1000);
-  timer t1;
-  t1.reset();
-  while (t1.time(sec) < 50) {
-    flywheel.spin(forward, 100, percent);
-    wait(250, msec);
-    flywheel.spin(forward, 99, percent);
-    wait(250, msec);
-  }
-  flywheel.spin(forward, 0, volt);
-
+  // timer t1;
+  // t1.reset();
+  // while (t1.time(sec) < 50) {
+  //   flywheel.spin(forward, 100, percent);
+  //   wait(250, msec);
+  //   flywheel.spin(forward, 99, percent);
+  //   wait(250, msec);
+  // }
+  // flywheel.spin(forward, 0, volt);
+  arcDist(-0.5,1,400,1000);
+  arcDist(1.0,0.6,-1200,1000);
+  drivePID(-1800, 1500);
+  arcDist(1.0,0.3,-600,2000);
+  drive_mV(-12000,-12000);
+  wait(2000,msec);
+  drive_mV(0,0);
 }
 
 void autonomous(void) {
